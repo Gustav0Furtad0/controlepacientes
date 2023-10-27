@@ -1,11 +1,12 @@
 import express from 'express';
-const router = require('../api/routes/helloWorld')();
+import { router } from '../api/Routes/helloWorld';
 
 module.exports = () => {
     const app = express();
 
     app.set('port', 3000);
 
+    
     app.use('/', router);
 
     return app;
