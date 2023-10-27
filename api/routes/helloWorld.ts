@@ -1,10 +1,8 @@
-const express = require('express');
-const router = express.Router();
+import express from 'express';
+import { Request } from 'express';
 
-import { Request, Response } from 'express';
+export const router = express.Router();
 
 router.get('/', (req:Request , res: { send: (arg0: string) => void; }) => {
     res.send('Olá, mundo!');
 });
-
-module.exports = router;
