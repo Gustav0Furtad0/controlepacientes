@@ -1,4 +1,4 @@
-const app = require('./config/express.ts')();
+const app = require('./config/express')();
 const port = app.get('port');
 
 app.listen(port, () => {

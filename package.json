@@ -2,12 +2,12 @@
   "name": "controlepacientes",
   "version": "1.0.0",
   "description": "App para controle de pacientes em consultórios",
-  "main": "server.ts",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
+    "build": "npm ci; tsc",
     "dev": "node ./build/server.js",
-    "start": "node ./build/server.js"
+    "start": "npm run dev"
   },
   "author": "",
   "license": "ISC",
