@@ -1,5 +1,5 @@
 import express from 'express';
-import { router } from '../api/Routes/helloWorld';
+const router = require('../api/routes/helloWorld')();
 
 module.exports = () => {
     const app = express();
