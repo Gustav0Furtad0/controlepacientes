@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "outDir": "./dist"
-  }
+    "outDir": "./dist",
+    "moduleResolution": "node"
+  },
+  "include": ["**/*.ts", "*.ts"]
 }
