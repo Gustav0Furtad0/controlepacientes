@@ -2,7 +2,11 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "outDir": "./dist",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "target": "es6",
+    "module": "UMD",
   },
-  "include": ["**/*.ts", "*.ts"]
+  "include": ["**/*.ts", "*.ts"],
+  "exclude": ["node_modules", ".vscode"]
 }
