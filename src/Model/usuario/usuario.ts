@@ -25,12 +25,32 @@ export default class Usuario {
          * @param id 
          */
         return new Promise((resolve, reject) => {
-            pool.query("SELECT * FROM person WHERE id = $1", [id], (err, res) => {
+            pool.query(`SELECT * FROM person WHERE id = $1`, [id], (err, result) => {
                 if (err) {
                     console.log(err);
                     reject(err);
                 } else {
-                    resolve(res.rows);
+                    console.log(result.rows)
+                    resolve(result.rows);
+                }
+            });
+        });
+    };
+
+    static getUserByName = async (name: string) => {
+        /**
+         * Retorna um usuário pelo nome
+         * @param name 
+         */
+        name = name + "%";
+        return new Promise((resolve, reject) => {
+            pool.query(`SELECT * FROM person WHERE UPPER(name) LIKE UPPER($1)`, [name], (err, result) => {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    console.log(result.rows)
+                    resolve(result.rows);
                 }
             });
         });

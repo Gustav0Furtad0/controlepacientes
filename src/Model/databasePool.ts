@@ -1,11 +1,14 @@
 import { Pool } from "pg";
+import config from "../../config.json";
+
+const con = config.database.con;
 
 const pool = new Pool({
-    user: "postgres",
-    host: "localhost",
-    database: "test",
-    password: "147258",
-    port: 5432
+    user: con.user,
+    host: con.host,
+    database: con.database,
+    password: con.password,
+    port: con.port
 });
 
 export default pool;
