@@ -2,22 +2,27 @@
   "name": "controlepacientes",
   "version": "1.0.0",
   "description": "App para controle de pacientes em consultórios",
-  "main": "server.js",
+  "main": "server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "yarn && tsc",
-    "start": "node ./dist/server.js"
+    "start": "node ./dist/server.js",
+    "rebuild-run": "yarn build && yarn start",
+    "dev": "nodemon ./server.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "pg": "^8.11.3",
     "tsc": "^2.0.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.15",
     "@types/express": "^4.17.20",
+    "@types/pg": "^8.10.7",
     "typescript": "^5.2.2"
   }
 }
