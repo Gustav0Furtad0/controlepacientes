@@ -11,8 +11,8 @@ export const getUserById = async (req: Request, res: Response) => {
     res.json(user);
 }
 
-export const getUserByName = async (req: Request, res: Response) => {
+export const getUserLikeName = async (req: Request, res: Response) => {
     console.log("Procurando por: " + req.params.name);
-    const user = await Usuario.getUserByName(req.params.name);
+    const user = await Usuario.getUserLikeName(req.params.name);
     res.json(user);
 }

@@ -7,6 +7,6 @@ UsersRoute.get('/users', UserController.getUsers);
 
 UsersRoute.get('/users/byid/:id', UserController.getUserById);
 
-UsersRoute.get('/users/byname/:name', UserController.getUserByName);
+UsersRoute.get('/users/byname/:name', UserController.getUserLikeName);
 
 export default UsersRoute;
