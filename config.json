@@ -6,7 +6,7 @@
         "con": {
             "user": "postgres",
             "host": "localhost",
-            "database": "test",
+            "database": "ondonto",
             "password": "147258",
             "port": 5432
         }
