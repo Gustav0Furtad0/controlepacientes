@@ -3,7 +3,7 @@ import * as UserController from '../Controller/userController';
 
 const UsersRoute = express.Router();
 
-UsersRoute.get('/users', UserController.getUsers);
+UsersRoute.get('/users', UserController.getAllUsers);
 
 UsersRoute.get('/users/byid/:id', UserController.getUserById);
 

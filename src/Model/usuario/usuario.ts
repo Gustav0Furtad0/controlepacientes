@@ -1,63 +1,40 @@
 import pool from "../databasePool";
-import bcrypt from "bcrypt";
-
-const saltRounds = 10;
 
 export default class Usuario {
-    static login = async (usuario: string, senha: string) => {
-        return new Promise((resolve, reject) => {
-            pool.query(`SELECT * FROM usuarios WHERE usuario = $1`, [usuario], (err, result) => {
-                if (err) {
-                    console.log(err);
-                    reject(err);
-                } else {
-                    if (result.rows.length > 0) {
-                        if (bcrypt.compareSync(senha, result.rows[0].senha)) {
-                            resolve(result.rows);
-                        } else {
-                            reject("Senha incorreta");
-                        }
-                    } else {
-                        reject("Usuário não encontrado");
-                    }
-                }
-            });
-        });
-    };
 
-    static hashPassword = async (senha: string) => {
-        return new Promise((resolve, reject) => {
-            bcrypt.hash(senha, saltRounds, function (err, hash) {
-                if (err) {
-                    console.log(err);
-                    reject(err);
-                } else {
-                    resolve(hash);
-                }
-            });
-        });
+    nome: string;
+    email: string;
+    senha: string;
+    cargo: string;
+    tipo_usuario: number;
+    usuario: string = '';
+
+    constructor(nome?: string, email?: string, senha?: string, cargo?: string, tipo_usuario?: number, usuario?: string) {
+        this.nome = nome || '';
+        this.email = email || '';
+        this.senha = senha || '';
+        this.cargo = cargo || '';
+        this.tipo_usuario = tipo_usuario || 0;
+        this.usuario = usuario || '';
     }
 
-    static createUser = async (usuario: string, senha: string, nome: string, email: string, tipo_usuario: string, cargo: string) => {
-        const passhash = await Usuario.hashPassword(senha);
+    static addUser = async (user: Usuario) => {
         return new Promise((resolve, reject) => {
-            pool.query(`INSERT INTO usuarios (usuario, senha, nome, email, tipo_usuario, cargo) VALUES ($1, $2, $3, $4, $5, $6)`, [usuario, passhash, nome, email, tipo_usuario, cargo], (err, result) => {
+            pool.query(`INSERT INTO usuarios (usuario, senha, nome, email, tipo_usuario, cargo) VALUES ($1, $2, $3, $4, $5, $6)`, [user.usuario, user.senha, user.nome, user.email, user.tipo_usuario, user.cargo], (err, result) => {
                 if (err) {
                     console.log(err);
                     reject(err);
                 } else {
-                    console.log(result.rows)
-                    resolve(result.rows);
+                    resolve(result);
                 }
             });
         });
     };
 
-    static getUsers = async () => {
+    static getAllUsers = () => {
         return new Promise((resolve, reject) => {
-            pool.query("SELECT * FROM usuarios", (err, res) => {
+            pool.query("SELECT * FROM userdata", (err, res) => {
                 if (err) {
-                    console.log(err);
                     reject(err);
                 } else {
                     resolve(res.rows);
@@ -66,59 +43,45 @@ export default class Usuario {
         });
     };
 
-    static getUserById = async (id: number) => {
+    static getUserBy = async (param: string, value: string) => {
         return new Promise((resolve, reject) => {
-            pool.query(`SELECT * FROM usuarios WHERE id = $1`, [id], (err, result) => {
+            pool.query(`SELECT * FROM userdata WHERE $1 = $2`, [param, value], (err, result) => {
                 if (err) {
                     console.log(err);
                     reject(err);
                 } else {
                     console.log(result.rows)
+                    resolve(result.rows[0]);
+                }
+            });
+        });
+    };
+
+    static getUserByLikeInit = async (param: string,value: string) => {
+        value = value + "%";
+        console.log("Procurando por: " + value + " em " + param)
+        return new Promise((resolve, reject) => {
+            pool.query(`SELECT * FROM usuarios WHERE UPPER(${param}) LIKE UPPER('${value}');`, (err, result) => {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
                     resolve(result.rows);
                 }
             });
         });
     };
 
-    static getUserLikeName = async (name: string) => {
-        name = name + "%";
+    static getUserPassword = async (usuario: string) => {
         return new Promise((resolve, reject) => {
-            pool.query(`SELECT * FROM usuarios WHERE UPPER(nome) LIKE UPPER($1)`, [name], (err, result) => {
+            pool.query(`SELECT senha FROM userprofile WHERE usuario = $1`, [usuario], (err, result) => {
                 if (err) {
                     console.log(err);
                     reject(err);
                 } else {
-                    console.log(result.rows)
-                    resolve(result.rows);
-                }
-            });
-        });
-    };
-
-    static getUserByUsername = async (username: string) => {
-        return new Promise((resolve, reject) => {
-            pool.query(`SELECT * FROM usuarios WHERE usuario = $1`, [username], (err, result) => {
-                if (err) {
-                    console.log(err);
-                    reject(err);
-                } else {
-                    console.log(result.rows)
-                    resolve(result.rows);
+                    resolve(result.rows[0]);
                 }
             });
         });
     }
-
-    static verifyUser = async (usuario: string, senha: string) => {
-        const user = await Usuario.getUserByUsername(usuario) as any[];
-        if (user.length > 0) {
-            if (bcrypt.compareSync(senha, user[0].senha)) {
-                return user;
-            } else {
-                throw new Error("Senha incorreta");
-            }
-        } else {
-            throw new Error("Usuário não encontrado");
-        }
-    };
 }
