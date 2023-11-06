@@ -1,10 +1,27 @@
 import {Request, Response} from "express";
 import Usuario from "../Model/usuario/usuario";
 import * as hash from "./Auth/hash";
+import {generateToken, verifyToken} from "./Auth/webToken";
 
 export const getAllUsers = async (req: Request, res: Response) => {
-    const users = await Usuario.getAllUsers();
-    res.json(users);
+    console.log("Get all users")
+    if (!req.headers.authorization) {
+        res.json({
+            message: "Token não encontrado!",
+            code: 500,
+        });
+    }
+    const token = req.headers.authorization as string;
+    const verify = await verifyToken(token as string);
+    if (!verify) {
+        res.json({
+            message: "Token inválido!",
+            code: 500,
+        });
+    }else {
+        const users = await Usuario.getAllUsers();
+        res.json(users);
+    }
 }
 
 export const getUserById = async (req: Request, res: Response) => {
@@ -46,15 +63,26 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const compare = await hash.comparePassword(req.body.senha, user.senha);
-    if (compare) {
-        res.json({
-            message: "Login efetuado com sucesso!",
-            code: 200,
-        });
-    } else {
+
+    if (!compare) {
         res.json({
             message: "Senha incorreta!",
             code: 500,
         });
     }
+
+    const userPayload = { 
+        id: user.id,
+        username: user.usuario,
+        tipo_usuario: user.tipo_usuario,
+    };
+
+    const token = generateToken(userPayload, '1m');
+
+    res.json({
+        message: "Login realizado com sucesso!",
+        code: 200,
+        token: token,
+    });
+
 }

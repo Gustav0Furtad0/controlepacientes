@@ -1,23 +1,16 @@
 import jwt from "jsonwebtoken";
+import config from "../../../config.json"
 
-class Authentication {
-    private readonly secret: string;
+const secretKey = config.server.secret;
 
-    constructor(secret: string) {
-        this.secret = secret;
-    }
-
-    generateToken(payload: object, expiresIn: string): string {
-        return jwt.sign(payload, this.secret, { expiresIn });
-    }
-
-    verifyToken(token: string): object | string {
-        try {
-            return jwt.verify(token, this.secret);
-        } catch (err: any) {
-            return err.message;
-        }
-    }
+export const generateToken= (payload: object, expiresIn: string) => {
+    return jwt.sign(payload, secretKey, { expiresIn });
 }
 
-export default Authentication;
+export const verifyToken = (token: string) => {
+    try {
+        return jwt.verify(token, secretKey);
+    } catch (err: any) {
+        return err.message;
+    }
+}
