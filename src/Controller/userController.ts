@@ -36,10 +36,10 @@ export const getUserLikeName = async (req: Request, res: Response) => {
 
 export const createUser = async (req: Request, res: Response) => {
     const hashPass = await hash.generateHash(req.body.senha);
-    let user = new Usuario(req.body.usuario, hashPass as string, req.body.nome, req.body.email, req.body.tipo_usuario, req.body.cargo);
+    let user = new Usuario(req.body.nome, req.body.email, hashPass as string, req.body.cargo, req.body.tipo_usuario, req.body.usuario);
     let addData = await Usuario.addUser(user);
 
-    if (addData ) {
+    if (addData) {
         res.json({
             message: "Erro ao criar usuário!",
             code: 500,

@@ -3,7 +3,7 @@ import config from "../../../config.json"
 
 const secretKey = config.server.secret;
 
-export const generateToken= (payload: object, expiresIn: string) => {
+export const generateToken = (payload: object, expiresIn: string) => {
     return jwt.sign(payload, secretKey, { expiresIn });
 }
 

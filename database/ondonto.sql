@@ -55,36 +55,53 @@ ALTER TABLE IF EXISTS public.debitos
     ADD CONSTRAINT usuario FOREIGN KEY (id_usuario)
     REFERENCES public.usuarios (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION VALIDATE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE IF EXISTS public.debitos
     ADD CONSTRAINT paciente FOREIGN KEY (id_paciente)
     REFERENCES public.pacientes (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION VALIDATE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE IF EXISTS public.orcamento
     ADD CONSTRAINT usuario FOREIGN KEY (id_usuario)
     REFERENCES public.usuarios (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION VALIDATE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE IF EXISTS public.orcamento
     ADD CONSTRAINT paciente FOREIGN KEY (id_paciente)
     REFERENCES public.pacientes (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION VALIDATE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE IF EXISTS public.consulta
     ADD CONSTRAINT usuario FOREIGN KEY (id_usuario)
     REFERENCES public.usuarios (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION VALIDATE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE IF EXISTS public.consulta
     ADD CONSTRAINT paciente FOREIGN KEY (id_paciente)
     REFERENCES public.pacientes (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION VALIDATE;
+    ON DELETE NO ACTION;
 
 END;
+
+
+-- public.usuarios definition
+
+-- Drop table
+
+-- DROP TABLE public.usuarios;
+
+/*CREATE TABLE usuarios (
+	id serial4 NOT NULL,
+	nome varchar NOT NULL,
+	email varchar NOT NULL,
+	senha varchar NOT NULL,
+	cargo varchar NOT NULL,
+	tipo_usuario int4 NOT NULL,
+	usuario varchar NOT NULL
+);*/

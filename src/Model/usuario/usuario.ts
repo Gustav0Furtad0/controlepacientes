@@ -18,14 +18,14 @@ export default class Usuario {
         this.usuario = usuario || '';
     }
 
-    static addUser = async (user: Usuario) => {
+    static addUser = (user: Usuario) => {
         return new Promise((resolve, reject) => {
             pool.query(`INSERT INTO usuarios (usuario, senha, nome, email, tipo_usuario, cargo) VALUES ($1, $2, $3, $4, $5, $6)`, [user.usuario, user.senha, user.nome, user.email, user.tipo_usuario, user.cargo], (err, result) => {
                 if (err) {
                     console.log(err);
                     reject(err);
                 } else {
-                    resolve(result);
+                    resolve(result.rows[0]);
                 }
             });
         });
