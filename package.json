@@ -4,7 +4,7 @@
   "description": "App para controle de pacientes em consultórios",
   "main": "server.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest ./src/test.ts",
     "build": "yarn && tsc",
     "start": "node ./dist/server.js",
     "rebuild-run": "yarn build && yarn start",

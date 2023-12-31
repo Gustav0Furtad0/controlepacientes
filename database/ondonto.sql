@@ -1,102 +1,67 @@
-BEGIN;
+-- DROP SCHEMA public;
 
-CREATE TABLE IF NOT EXISTS public.usuarios
-(
-    id serial PRIMARY KEY,
-    usuario text NOT NULL,
-    senha text NOT NULL,
-    nome text NOT NULL,
-    email text NOT NULL,
-    tipo_usuario integer NOT NULL DEFAULT 2,
-    cargo text NOT NULL
+CREATE SCHEMA public AUTHORIZATION pg_database_owner;
+
+-- DROP SEQUENCE public.paciente_id_seq;
+
+CREATE SEQUENCE public.paciente_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+-- DROP SEQUENCE public.usuarios_id_seq;
+
+CREATE SEQUENCE public.usuarios_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;-- public.pacientes definition
+
+-- Drop table
+
+-- DROP TABLE pacientes;
+
+CREATE TABLE pacientes (
+	id int4 NOT NULL DEFAULT nextval('paciente_id_seq'::regclass),
+	nome text NOT NULL,
+	cpf text NOT NULL,
+	rg text NULL,
+	data_nasc date NULL,
+	sexo text NULL,
+	telefone text NULL,
+	email text NULL,
+	endereco text NULL,
+	numero text NULL,
+	complemento text NULL,
+	bairro text NULL,
+	cidade text NULL,
+	estado text NULL,
+	convenio text NULL,
+	tipo_sanguineo text NULL,
+	fator_rh text NULL,
+	alergias text NULL,
+	medicamentos text NULL,
+	cirurgias text NULL,
+	observacoes text NULL,
+	nome_responsavel text NULL,
+	telefone_responsavel text NULL,
+	email_responsavel text NULL,
+	parentesco text NULL,
+	CONSTRAINT paciente_pkey PRIMARY KEY (id)
 );
-
-CREATE TABLE IF NOT EXISTS public.pacientes
-(
-    id serial PRIMARY KEY,
-    nome text,
-    cpf integer,
-    idade integer,
-    contato json,
-    necessidades json
-);
-
-CREATE TABLE IF NOT EXISTS public.debitos
-(
-    id serial PRIMARY KEY,
-    id_paciente integer NOT NULL,
-    parcelas text NOT NULL,
-    valor money NOT NULL,
-    titulo text NOT NULL,
-    data_vencimento date NOT NULL,
-    id_usuario integer NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS public.orcamento
-(
-    id serial PRIMARY KEY,
-    id_usuario integer NOT NULL,
-    id_paciente integer NOT NULL,
-    informacoes text,
-    pasta_documentos text
-);
-
-CREATE TABLE IF NOT EXISTS public.consulta
-(
-    id serial PRIMARY KEY,
-    id_paciente integer NOT NULL,
-    id_usuario integer NOT NULL,
-    data_consulta date NOT NULL,
-    pasta_documentos text,
-    informacoes text
-);
-
-ALTER TABLE IF EXISTS public.debitos
-    ADD CONSTRAINT usuario FOREIGN KEY (id_usuario)
-    REFERENCES public.usuarios (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-
-ALTER TABLE IF EXISTS public.debitos
-    ADD CONSTRAINT paciente FOREIGN KEY (id_paciente)
-    REFERENCES public.pacientes (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-
-ALTER TABLE IF EXISTS public.orcamento
-    ADD CONSTRAINT usuario FOREIGN KEY (id_usuario)
-    REFERENCES public.usuarios (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-
-ALTER TABLE IF EXISTS public.orcamento
-    ADD CONSTRAINT paciente FOREIGN KEY (id_paciente)
-    REFERENCES public.pacientes (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-
-ALTER TABLE IF EXISTS public.consulta
-    ADD CONSTRAINT usuario FOREIGN KEY (id_usuario)
-    REFERENCES public.usuarios (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-
-ALTER TABLE IF EXISTS public.consulta
-    ADD CONSTRAINT paciente FOREIGN KEY (id_paciente)
-    REFERENCES public.pacientes (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-
-END;
 
 
 -- public.usuarios definition
 
 -- Drop table
 
--- DROP TABLE public.usuarios;
+-- DROP TABLE usuarios;
 
-/*CREATE TABLE usuarios (
+CREATE TABLE usuarios (
 	id serial4 NOT NULL,
 	nome varchar NOT NULL,
 	email varchar NOT NULL,
@@ -104,4 +69,25 @@ END;
 	cargo varchar NOT NULL,
 	tipo_usuario int4 NOT NULL,
 	usuario varchar NOT NULL
-);*/
+);
+
+
+-- public.userdata source
+
+CREATE OR REPLACE VIEW public.userdata
+AS SELECT nome,
+    email,
+    cargo,
+    tipo_usuario,
+    usuario
+   FROM usuarios;
+
+
+-- public.userprofile source
+
+CREATE OR REPLACE VIEW public.userprofile
+AS SELECT id,
+    usuario,
+    senha,
+    tipo_usuario
+   FROM usuarios;

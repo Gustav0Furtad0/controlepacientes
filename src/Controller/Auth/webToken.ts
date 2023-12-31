@@ -8,9 +8,8 @@ export const generateToken = (payload: object, expiresIn: string) => {
 }
 
 export const verifyToken = (token: string) => {
-    try {
-        return jwt.verify(token, secretKey);
-    } catch (err: any) {
-        return err.message;
-    }
+    return new Promise((resolve) => {
+        const decodedToken = jwt.verify(token, secretKey);
+        resolve(decodedToken);
+    });
 }

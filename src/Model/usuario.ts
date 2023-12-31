@@ -1,4 +1,4 @@
-import pool from "../databasePool";
+import pool from "./databasePool";
 
 export default class Usuario {
 
@@ -74,7 +74,7 @@ export default class Usuario {
 
     static getUserPassword = async (usuario: string) => {
         return new Promise((resolve, reject) => {
-            pool.query(`SELECT senha FROM userprofile WHERE usuario = $1`, [usuario], (err, result) => {
+            pool.query(`SELECT * FROM userprofile WHERE usuario = $1`, [usuario], (err, result) => {
                 if (err) {
                     console.log(err);
                     reject(err);
