@@ -21,24 +21,27 @@ export const getUserLikeName = async (req: Request, res: Response) => {
 export const createUser = async (req: Request, res: Response) => {
     const hashPass = await hash.generateHash(req.body.senha);
     let user = new Usuario(req.body.nome, req.body.email, hashPass as string, req.body.cargo, req.body.tipo_usuario, req.body.usuario);
-    let addData = await Usuario.addUser(user);
+    
+    let newUserId = await Usuario.addUser(user);
 
-    if (addData) {
-        res.json({
+    if (newUserId === null) {
+        return res.json({
             message: "Erro ao criar usuário!",
             code: 500,
         });
     }
 
-    res.json({
+    return res.json({
         message: "Usuário criado com sucesso!",
         code: 200,
+        userId: newUserId,
     });
-} 
+};
 
 export const login = async (req: Request, res: Response) => {
     try {
-        const user = await Usuario.getUserPassword(req.body.usuario);
+        console.log(req.body.username, req.body.password)
+        const user = await Usuario.getUserPassword(req.body.username);
 
         if (!user) {
             return res.status(404).json({
@@ -47,7 +50,7 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        const compare = await hash.comparePassword(req.body.senha, (user as { senha: string })['senha']);
+        const compare = await hash.comparePassword(req.body.password, (user as { senha: string })['senha']);
 
         if (!compare) {
             return res.status(401).json({
@@ -62,14 +65,15 @@ export const login = async (req: Request, res: Response) => {
             tipo_usuario: (user as { tipo_usuario: string }).tipo_usuario,
         };
 
-        const token = generateToken(userPayload, '1h'); // Ajuste o tempo de expiração conforme necessário
+        const token = generateToken(userPayload, '15m');
 
-        console.log( await verifyToken(token));
+        console.log(await verifyToken(token));
 
         res.json({
             message: "Login realizado com sucesso!",
             code: 200,
             token: token,
+            user: userPayload,
         }); 
     } catch (error) {
         console.error("Erro durante o login:", error);
