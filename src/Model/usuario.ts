@@ -1,59 +1,93 @@
 import initializeDb from "./databaseCon";
 
 export default class Usuario {
-    nome: string;
+    nomeCompleto: string;
     email: string;
     senha: string;
-    cargo: string;
-    tipo_usuario: number;
-    usuario: string;
+    tipoUsuario: string;
+    nomeUsuario: string;
+    status: number;
 
-    constructor(nome?: string, email?: string, senha?: string, cargo?: string, tipo_usuario?: number, usuario?: string) {
-        this.nome = nome || '';
-        this.email = email || '';
+    constructor(nomeUsuario?: string, nomeCompleto?: string, senha?: string, email?: string, tipoUsuario?: string) {
+        this.nomeUsuario = nomeUsuario || '';
+        this.nomeCompleto = nomeCompleto || '';
         this.senha = senha || '';
-        this.cargo = cargo || '';
-        this.tipo_usuario = tipo_usuario || 0;
-        this.usuario = usuario || '';
+        this.email = email || '';
+        this.tipoUsuario = tipoUsuario || '';
+        this.status = 1;
     }
 
     static addUser = async (user: Usuario): Promise<number | null> => {
         const db = await initializeDb();
-        const result = await db.run(
-            `INSERT INTO usuarios (usuario, senha, nome, email, tipo_usuario, cargo) VALUES (?, ?, ?, ?, ?, ?)`,
-            [user.usuario, user.senha, user.nome, user.email, user.tipo_usuario, user.cargo]
-        );
-        return result.lastID ?? null;
+        try {
+            const result = await db.run(
+                `INSERT INTO usuarios (nomeUsuario, nomeCompleto, senha, email, tipoUsuario, status) VALUES (?, ?, ?, ?, ?, 1)`,
+                [user.nomeUsuario, user.nomeCompleto, user.senha, user.email, user.tipoUsuario]
+            );
+            return result.lastID ?? null;
+        } catch (error) {
+            console.log(error);
+            return null;
+        } finally {
+            db.close();
+        }
     };
 
     static getAllUsers = async (): Promise<any[]> => {
         const db = await initializeDb();
-        return db.all("SELECT * FROM usuarios ORDER BY nomeCompleto ASC");
+        try {
+            return db.all("SELECT * FROM usuarios ORDER BY nomeCompleto ASC");
+        } catch (error) {
+            console.log(error);
+            return [];
+        } finally {
+            db.close();
+        }
     };
 
     static getUserBy = async (param: string, value: string): Promise<any> => {
         const db = await initializeDb();
-        const allowedParams = ['usuario', 'nome', 'email', 'tipo_usuario', 'cargo'];
-        if (!allowedParams.includes(param)) {
-            throw new Error("Parâmetro de busca inválido.");
+        try {
+            const allowedParams = ['usuario', 'nome', 'email', 'tipo_usuario', 'cargo'];
+            if (!allowedParams.includes(param)) {
+                throw new Error("Parâmetro de busca inválido.");
+            }
+            return db.get(`SELECT * FROM usuarios WHERE ${param} = ?`, [value]);
+        } catch (error) {
+            console.log(error);
+            return null;
+        } finally {
+            db.close();
         }
-
-        return db.get(`SELECT * FROM usuarios WHERE ${param} = ?`, [value]);
     };
 
     static getUserByLikeInit = async (param: string, value: string): Promise<any[]> => {
         const db = await initializeDb();
-        const allowedParams = ['usuario', 'nome', 'email', 'tipo_usuario', 'cargo']; // Certifique-se de que esta lista inclua todos os campos pelos quais você permite busca
-        if (!allowedParams.includes(param)) {
-            throw new Error("Parâmetro de busca inválido.");
-        }
+        try {
+            const allowedParams = ['usuario', 'nome', 'email', 'tipo_usuario', 'cargo']; // Certifique-se de que esta lista inclua todos os campos pelos quais você permite busca
+            if (!allowedParams.includes(param)) {
+                throw new Error("Parâmetro de busca inválido.");
+            }
 
-        value = value + "%";
-        return db.all(`SELECT * FROM usuarios WHERE UPPER(${param}) LIKE UPPER(?)`, [value]);
-    }
+            value = value + "%";
+            return db.all(`SELECT * FROM usuarios WHERE UPPER(${param}) LIKE UPPER(?)`, [value]);
+        } catch (error) {
+            console.log(error);
+            return [];
+        } finally {
+            db.close();
+        }
+    };
 
     static getUserPassword = async (usuario: string): Promise<any> => {
         const db = await initializeDb();
-        return db.get(`SELECT senha FROM usuarios WHERE nomeUsuario = ?`, [usuario]);
+        try {
+            return db.get(`SELECT senha FROM usuarios WHERE nomeUsuario = ?`, [usuario]);
+        } catch (error) {
+            console.log(error);
+            return null;
+        } finally {
+            db.close();
+        }
     }
 }

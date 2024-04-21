@@ -12,6 +12,4 @@ UsersRoute.get('/byname/:name', verifyTokenMiddleware, UserController.getUserLik
 
 UsersRoute.post('/create', verifyTokenMiddleware, UserController.createUser);
 
-UsersRoute.post('/login', UserController.login);
-
 export default UsersRoute;
