@@ -5,7 +5,6 @@ import {generateToken, verifyToken} from "./Auth/webToken";
 
 export const login = async (req: Request, res: Response) => {
     try {
-        console.log(req.body.username, req.body.password)
         const user = await Usuario.getUserPassword(req.body.username);
 
         if (!user) {
@@ -32,8 +31,6 @@ export const login = async (req: Request, res: Response) => {
 
         const token = generateToken(userPayload, '15m');
 
-        console.log(await verifyToken(token));
-
         res.json({
             message: "Login realizado com sucesso!",
             code: 200,
@@ -43,7 +40,7 @@ export const login = async (req: Request, res: Response) => {
     } catch (error) {
         console.error("Erro durante o login:", error);
         res.status(500).json({
-            message: "Erro interno do servidor",
+            message: "Erro interno do servidor: " + error,
             code: 500,
         });
     }

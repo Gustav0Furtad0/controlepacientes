@@ -8,7 +8,14 @@ export const getAllUsers = async (req: Request, res: Response) => {
 }
 
 export const getUserById = async (req: Request, res: Response) => {
-    const user = await Usuario.getUserBy("id", req.params.id);
+    const user = await Usuario.getUsersBy("id", req.params.id);
+    res.json(user);
+}
+
+export const getUsersByType = async (req: Request, res: Response) => {
+    console.log(req.params.type)
+    const user = await Usuario.getUsersBy("tipoUsuario", req.params.type);
+    console.log(user)
     res.json(user);
 }
 

@@ -1,5 +1,5 @@
 --
--- File generated with SQLiteStudio v3.4.4 on ter abr 23 03:33:12 2024
+-- File generated with SQLiteStudio v3.4.4 on ter abr 23 03:35:54 2024
 --
 -- Text encoding used: System
 --
@@ -14,10 +14,10 @@ CREATE TABLE fotosConsulta (id INTEGER PRIMARY KEY AUTOINCREMENT, consultaId INT
 
 -- Table: pacientes
 CREATE TABLE pacientes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, -- Um campo id como chave primária
+    id INTEGER PRIMARY KEY AUTOINCREMENT, -- Um campo id como chave primï¿½ria
     nomeCompleto TEXT NOT NULL,
     sexo TEXT,
-    cpf TEXT UNIQUE NOT NULL, -- CPF como único para evitar duplicatas
+    cpf TEXT UNIQUE NOT NULL, -- CPF como ï¿½nico para evitar duplicatas
     dataNascimento DATE,
     convenio TEXT,
     telefone TEXT,
@@ -34,7 +34,7 @@ CREATE TABLE pacientes (
 CREATE TABLE pagamentos (id INTEGER PRIMARY KEY AUTOINCREMENT, consultaId INTEGER REFERENCES consultas (id) NOT NULL, valor REAL, dataCobranca TEXT, statusPagamento TEXT NOT NULL DEFAULT ('pendente'), numeroParcela INTEGER DEFAULT (1));
 
 -- Table: parcelas
-CREATE TABLE parcelas (id INTEGER PRIMARY KEY AUTOINCREMENT, pagamentosId INTEGER NOT NULL REFERENCES pagamentos (id), numeroParcela INTEGER NOT NULL, valorParcela REAL NOT NULL, dataVencimento TEXT, statusParcela DEFAULT ('pendente'));
+CREATE TABLE parcelas (id INTEGER PRIMARY KEY AUTOINCREMENT, pagamentosId INTEGER NOT NULL REFERENCES pagamentos (id), numeroParcela INTEGER NOT NULL, valorParcela REAL NOT NULL, dataVencimento TEXT, statusParcela TEXT DEFAULT ('pendente'));
 
 -- Table: usuarios
 CREATE TABLE usuarios (uid INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL, nomeUsuario TEXT NOT NULL UNIQUE, nomeCompleto TEXT NOT NULL, senha TEXT NOT NULL, email TEXT NOT NULL, tipoUsuario TEXT NOT NULL, status INTEGER DEFAULT (0) NOT NULL);

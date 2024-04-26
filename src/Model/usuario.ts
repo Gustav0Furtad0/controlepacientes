@@ -45,14 +45,15 @@ export default class Usuario {
         }
     };
 
-    static getUserBy = async (param: string, value: string): Promise<any> => {
+    static getUsersBy = async (param: string, value: string): Promise<any> => {
         const db = await initializeDb();
+        console.log(param, value);
         try {
-            const allowedParams = ['usuario', 'nome', 'email', 'tipo_usuario', 'cargo'];
+            const allowedParams = ['nomeUsuario', 'nomeCompleto', 'email', 'tipoUsuario', 'status'];
             if (!allowedParams.includes(param)) {
                 throw new Error("Parâmetro de busca inválido.");
             }
-            return db.get(`SELECT * FROM usuarios WHERE ${param} = ?`, [value]);
+            return db.all(`SELECT * FROM usuarios WHERE ${param} = ?`, [value]);
         } catch (error) {
             console.log(error);
             return null;
@@ -64,7 +65,7 @@ export default class Usuario {
     static getUserByLikeInit = async (param: string, value: string): Promise<any[]> => {
         const db = await initializeDb();
         try {
-            const allowedParams = ['usuario', 'nome', 'email', 'tipo_usuario', 'cargo']; // Certifique-se de que esta lista inclua todos os campos pelos quais você permite busca
+            const allowedParams = ['nomeUsuario', 'nomeCompleto', 'email', 'tipoUsuario', 'status']; // Certifique-se de que esta lista inclua todos os campos pelos quais você permite busca
             if (!allowedParams.includes(param)) {
                 throw new Error("Parâmetro de busca inválido.");
             }
