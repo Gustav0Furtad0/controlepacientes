@@ -7,6 +7,8 @@ export const login = async (req: Request, res: Response) => {
     try {
         const user = await Usuario.getUserPassword(req.body.username);
 
+        console.log("User:", user)
+
         if (!user) {
             return res.status(404).json({
                 message: "Usuário não encontrado!",
