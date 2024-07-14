@@ -34,11 +34,17 @@ export const addConsulta = async (req: Request, res: Response) => {
 
         const result = await consulta.save();
 
-        res.status(201).json({
-            message: "Consulta adicionada com sucesso!",
-            code: 201,
-            result: result
-        });
+        if(result){
+            res.json({
+                message: "Pagamento criado com sucesso!",
+                code: 201,
+            });
+        } else {
+            res.json({
+                message: "Erro ao criar pagamento!",
+                code: 500,
+            });
+        }
     } catch (error) {
         console.error("Erro ao adicionar consulta:", error);
         res.status(500).json({
@@ -197,7 +203,7 @@ export const verificaHorarioIntervalo = async (req: Request, res: Response) => {
                 }
                 diaAtual.setDate(diaAtual.getDate() + 1);
             }
-
+            
             return dias;
         };
 
@@ -222,46 +228,44 @@ export const verificaHorarioIntervalo = async (req: Request, res: Response) => {
                     diasComIntervalo.push(dia);
                     return;
                 }
-        
+                
                 consultasDia.sort((a, b) => converterParaMinutos(a.inicio) - converterParaMinutos(b.inicio));
-        
+                
                 let tempoLivre = inicioMinutos;
-        
-                // Verificar espaço antes da primeira consulta do dia
+                
+                
                 const primeiraConsulta = consultasDia[0];
                 const inicioPrimeiraConsulta = converterParaMinutos(primeiraConsulta.inicio);
                 if (inicioPrimeiraConsulta >= tempoLivre + duracaoMinutosInt) {
                     diasComIntervalo.push(dia);
                     return;
                 }
-        
-                // Verificar espaço entre consultas
+                
                 for (let i = 0; i < consultasDia.length - 1; i++) {
                     const fimConsultaAtual = converterParaMinutos(consultasDia[i].fim);
                     const inicioProximaConsulta = converterParaMinutos(consultasDia[i + 1].inicio);
-        
+                    
                     if (inicioProximaConsulta >= fimConsultaAtual + duracaoMinutosInt) {
                         diasComIntervalo.push(dia);
                         return;
                     }
-        
+                    
                     tempoLivre = Math.max(tempoLivre, fimConsultaAtual);
                 }
-        
-                // Verificar espaço após a última consulta do dia
+
                 const fimUltimaConsulta = converterParaMinutos(consultasDia[consultasDia.length - 1].fim);
                 if (fimMinutos >= fimUltimaConsulta + duracaoMinutosInt) {
                     diasComIntervalo.push(dia);
                 }
             });
-        
+            
             console.log("Dias com intervalo:", diasComIntervalo);
-        
+            
             return diasComIntervalo;
         };
-
+        
         const diasDisponiveis = verificarIntervalo(consultas, dataInicio, dataFim, horaInicio, horaFim, diasSemana, duracaoMinutos);
-
+        
         res.json(diasDisponiveis);
 
     } catch (error) {
