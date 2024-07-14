@@ -8,7 +8,11 @@ import cors from 'cors';
 
 export const app = express();
 
-app.use(cors());
+const corsOptions = {
+    exposedHeaders: 'Authorization',
+};
+
+app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 

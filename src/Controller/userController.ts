@@ -13,9 +13,7 @@ export const getUserById = async (req: Request, res: Response) => {
 }
 
 export const getUsersByType = async (req: Request, res: Response) => {
-    console.log(req.params.type)
     const user = await Usuario.getUsersBy("tipoUsuario", req.params.type);
-    console.log(user)
     res.json(user);
 }
 
@@ -25,7 +23,6 @@ export const getUserLikeName = async (req: Request, res: Response) => {
 }
 
 export const createUser = async (req: Request, res: Response) => {
-    console.log(req.body)
     const hashPass = await hash.generateHash(req.body.senha);
     let user = new Usuario(req.body.nomeUsuario, req.body.nomeCompleto, hashPass as string, req.body.email, req.body.tipoUsuario);
     

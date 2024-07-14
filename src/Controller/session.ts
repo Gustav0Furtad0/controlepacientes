@@ -1,14 +1,11 @@
 import {Request, Response} from "express";
 import Usuario from "../Model/usuario";
 import * as hash from "./Auth/hash";
-import {generateToken, verifyToken} from "./Auth/webToken";
+import { decodeToken, generateToken } from "./Auth/webToken";
 
 export const login = async (req: Request, res: Response) => {
     try {
-        const user = await Usuario.getUserPassword(req.body.username);
-
-        console.log("User:", user)
-
+        const user = await Usuario.getUserBy('nomeUsuario', req.body.username);
         if (!user) {
             return res.status(404).json({
                 message: "Usuário não encontrado!",
@@ -16,7 +13,7 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        const compare = await hash.comparePassword(req.body.password, (user as { senha: string })['senha']);
+        const compare = await hash.compareHash(req.body.password, user.senha);
 
         if (!compare) {
             return res.status(401).json({
@@ -25,10 +22,13 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        const userPayload = { 
-            id: (user as { id: string }).id,
-            username: (user as { usuario: string }).usuario,
-            tipo_usuario: (user as { tipo_usuario: string }).tipo_usuario,
+        const userPayload = {
+            uid: user.uid,
+            nomeUsuario: user.nomeUsuario,
+            nomeCompleto: user.nomeCompleto,
+            email: user.email,
+            tipoUsuario: user.tipoUsuario,
+            status: user.status,
         };
 
         const token = generateToken(userPayload, '15m');
@@ -45,5 +45,23 @@ export const login = async (req: Request, res: Response) => {
             message: "Erro interno do servidor: " + error,
             code: 500,
         });
+    }
+};
+
+export const getSessionInfo = async (req: Request, res: Response) => {
+    try {
+        if (req.headers.authorization) {
+            let token = req.headers.authorization as string;
+            token = token.split(" ")[1];
+            const decodedToken = await decodeToken(token);
+            if (decodedToken) {
+                return decodedToken;
+            } else {
+                return false;
+            }   
+        }
+    } catch (error) {
+        console.log(error)
+        return false;
     }
 };
