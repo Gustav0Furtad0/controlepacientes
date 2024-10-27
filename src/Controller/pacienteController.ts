@@ -19,7 +19,7 @@ export const addPaciente = async (req: Request, res: Response) => {
             req.body.nomeCompleto || "",
             req.body.sexo || "",
             req.body.cpf || "",
-            req.body.dataNascimento || null,
+            req.body.dataNascimento,
             req.body.convenio || "",
             req.body.telefone || "",
             req.body.endereco || "",

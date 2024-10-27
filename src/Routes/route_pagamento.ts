@@ -11,4 +11,4 @@ PagamentoRoute.get('/:id', verifyTokenMiddleware, PagamentoController.getPagamen
 PagamentoRoute.put('/:id', verifyTokenMiddleware, PagamentoController.updatePagamento);
 PagamentoRoute.delete('/:id', verifyTokenMiddleware, PagamentoController.deletePagamento);
 
-export default PagamentoRoute;        
+export default PagamentoRoute;

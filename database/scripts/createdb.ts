@@ -1,6 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 
-const dbPath = './database/sqlite/database.db';
+const dbPath = './database/sqlite/ondontodb.db';
 
 const db = new sqlite3.Database(dbPath, (err: any) => {
     if (err) {

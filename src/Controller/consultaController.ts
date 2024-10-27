@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import Consulta from "../Model/consulta";
 import { getSessionInfo } from "./session";
-import { formatISO } from 'date-fns';
+import { DateTime } from 'luxon';
 
 const createDatetimeStrings = (dataConsulta: string, horaInicio: string, horaFinal: string): { dataInicio: string, dataFim: string } => {
     return {
@@ -29,8 +29,9 @@ export const addConsulta = async (req: Request, res: Response) => {
         const { dataInicio, dataFim } = createDatetimeStrings(dataConsulta, horaInicio, horaFinal);
         const session = await getSessionInfo(req, res);
         const userId = session ? (session as any).uid : null;
+        const abertoEm = DateTime.now().toFormat('yyyy-MM-dd HH:mm');
 
-        let consulta = new Consulta(dataInicio, dataFim, pacienteId, clinicoId, userId, descricao, tipoConsulta);
+        let consulta = new Consulta(dataInicio, dataFim, pacienteId, clinicoId, userId, descricao, tipoConsulta, abertoEm);
 
         const result = await consulta.save();
 
@@ -148,17 +149,25 @@ export const verificaHorario = async (req: Request, res: Response) => {
     try {
         const { data, horaInicio, horaFinal, clinicoId } = req.body;
 
+        console.log(data);
+        console.log(horaInicio);
+        console.log(horaFinal);
+
         const { dataInicio, dataFim } = createDatetimeStrings(data, horaInicio, horaFinal);
 
+        console.log("data inicio", dataInicio);
+        console.log("data fim", dataFim);
+
         const consultas = await Consulta.verificaHorario({ clinicoId, dataInicio, dataFim });
-        if (consultas.length > 0) {
-            console.log("Já existe uma consulta marcada para este horário!")
+        console.log("consultas que tem", consultas);
+        if (consultas) {
+            console.log("Já existe uma consulta marcada para este horário!");
             res.json({
                 message: "Já existe uma consulta marcada para este horário!",
                 code: 409,
             });
         } else {
-            console.log("Horário disponível para consulta!")
+            console.log("Horário disponível para consulta!");
             res.json({
                 message: "Horário disponível para consulta!",
                 code: 200,

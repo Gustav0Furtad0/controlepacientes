@@ -6,3 +6,5 @@
 *.log
 LIXO*
 database.db
+
+yarn.lock

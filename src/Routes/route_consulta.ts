@@ -13,4 +13,4 @@ ConsultaRoute.delete('/:id', verifyTokenMiddleware, ConsultaController.deleteCon
 ConsultaRoute.post('/verificar', verifyTokenMiddleware, ConsultaController.verificaHorario);
 ConsultaRoute.post('/intervaloLivre', verifyTokenMiddleware, ConsultaController.verificaHorarioIntervalo);    
 
-export default ConsultaRoute;        
+export default ConsultaRoute;

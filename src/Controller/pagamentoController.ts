@@ -4,9 +4,11 @@ import { getSessionInfo } from "./session";
 
 export const getAllPagamentos = async (req: Request, res: Response) => {
     try {
+        console.log("getAllPagamentos");
         const pagamentos = await Pagamento.get({});
         res.json(pagamentos);
     } catch (error) {
+        console.log(error);
         res.json({
             message: "Erro ao buscar pagamentos!",
             code: 500,
@@ -42,6 +44,7 @@ export const addPagamento = async (req: Request, res: Response) => {
 }
 
 export const getPagamentoById = async (req: Request, res: Response) => {
+    console.log("getPagamentoById");
     try {
         const { id } = req.params;
         const pagamento = await Pagamento.get({ id: Number(id) });

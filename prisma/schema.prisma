@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../database/sqlite/ondontodb.db"
+}
+
+model Paciente {
+  id                   Int      @id @default(autoincrement())
+  nomeCompleto        String
+  cpf                 String   @unique
+  sexo                String?
+  dataNascimento      String?
+  convenio            String?
+  telefone            String?
+  endereco            String?
+  email               String?
+  alergias            String?
+  doencas             String?
+  nomeCompletoResponsavel String?
+  telefoneResponsavel String?
+  cpfResponsavel      String?
+
+  consultas           Consulta[]
+}
+
+model Usuario {
+  uid                 Int      @id @default(autoincrement())
+  nomeUsuario         String   @unique
+  nomeCompleto        String
+  senha               String
+  email               String
+  tipoUsuario         String
+  status              Int      @default(0)
+
+  consultasComoClinico Consulta[] @relation(name: "ClinicoRelation")
+  consultasComoUser Consulta[] @relation(name: "UserRelation")
+}
+
+model Consulta {
+  id                 Int      @id @default(autoincrement())
+  pacienteId         Int
+  paciente           Paciente @relation(fields: [pacienteId], references: [id])
+  clinicoId          Int
+  clinico            Usuario @relation(fields: [clinicoId], references: [uid], name: "ClinicoRelation")
+  userId             Int
+  user               Usuario @relation(fields: [userId], references: [uid], name: "UserRelation")
+  dataInicio         String
+  dataFim            String
+  tipoConsulta       String   @default("0")
+  abertoEm           String
+  descricao          String?
+}

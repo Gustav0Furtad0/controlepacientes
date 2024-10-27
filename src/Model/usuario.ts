@@ -1,4 +1,6 @@
-import initializeDb from "./databaseCon";
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export default class Usuario {
     nomeCompleto: string;
@@ -18,92 +20,98 @@ export default class Usuario {
     }
 
     static addUser = async (user: Usuario): Promise<number | null> => {
-        const db = await initializeDb();
         try {
-            const result = await db.run(
-                `INSERT INTO usuarios (nomeUsuario, nomeCompleto, senha, email, tipoUsuario, status) VALUES (?, ?, ?, ?, ?, 1)`,
-                [user.nomeUsuario, user.nomeCompleto, user.senha, user.email, user.tipoUsuario]
-            );
-            return result.lastID ?? null;
+            const result = await prisma.usuario.create({
+                data: {
+                    nomeUsuario: user.nomeUsuario,
+                    nomeCompleto: user.nomeCompleto,
+                    senha: user.senha,
+                    email: user.email,
+                    tipoUsuario: user.tipoUsuario,
+                    status: user.status
+                }
+            });
+            return result.uid;
         } catch (error) {
             console.log(error);
             return null;
-        } finally {
-            db.close();
         }
     };
 
     static getAllUsers = async (): Promise<any[]> => {
-        const db = await initializeDb();
         try {
-            return db.all("SELECT * FROM usuarios ORDER BY nomeCompleto ASC");
+            return await prisma.usuario.findMany({
+                orderBy: { nomeCompleto: 'asc' }
+            });
         } catch (error) {
             console.log(error);
             return [];
-        } finally {
-            db.close();
         }
     };
 
-    static getUsersBy = async (param: string, value: string): Promise<any> => {
-        const db = await initializeDb();
+    static getUsersBy = async (param: string, value: string): Promise<any[]> => {
+        const allowedParams = ['nomeUsuario', 'nomeCompleto', 'email', 'tipoUsuario', 'status'];
+        if (!allowedParams.includes(param)) {
+            throw new Error("Parâmetro de busca inválido.");
+        }
+
         try {
-            const allowedParams = ['nomeUsuario', 'nomeCompleto', 'email', 'tipoUsuario', 'status'];
-            if (!allowedParams.includes(param)) {
-                throw new Error("Parâmetro de busca inválido.");
-            }
-            return db.all(`SELECT * FROM usuarios WHERE ${param} = ?`, [value]);
+            return await prisma.usuario.findMany({
+                where: {
+                    [param]: value
+                }
+            });
         } catch (error) {
             console.log(error);
-            return null;
-        } finally {
-            db.close();
+            return [];
         }
     };
 
-    static getUserBy = async (param: string, value: string): Promise<any> => {
-        const db = await initializeDb();
+    static getUserBy = async (param: string, value: string): Promise<any | null> => {
+        const allowedParams = ['nomeUsuario', 'nomeCompleto', 'email', 'tipoUsuario', 'status'];
+        if (!allowedParams.includes(param)) {
+            throw new Error("Parâmetro de busca inválido.");
+        }
+
         try {
-            const allowedParams = ['nomeUsuario', 'nomeCompleto', 'email', 'tipoUsuario', 'status'];
-            if (!allowedParams.includes(param)) {
-                throw new Error("Parâmetro de busca inválido.");
-            }
-            return db.get(`SELECT * FROM usuarios WHERE ${param} = ?`, [value]);
+            return await prisma.usuario.findFirst({
+                where: {
+                    [param]: value
+                }
+            });
         } catch (error) {
             console.log(error);
             return null;
-        } finally {
-            db.close();
         }
     };
 
     static getUserByLikeInit = async (param: string, value: string): Promise<any[]> => {
-        const db = await initializeDb();
-        try {
-            const allowedParams = ['nomeUsuario', 'nomeCompleto', 'email', 'tipoUsuario', 'status'];
-            if (!allowedParams.includes(param)) {
-                throw new Error("Parâmetro de busca inválido.");
-            }
+        const allowedParams = ['nomeUsuario', 'nomeCompleto', 'email', 'tipoUsuario', 'status'];
+        if (!allowedParams.includes(param)) {
+            throw new Error("Parâmetro de busca inválido.");
+        }
 
-            value = value + "%";
-            return db.all(`SELECT * FROM usuarios WHERE UPPER(${param}) LIKE UPPER(?)`, [value]);
+        try {
+            return await prisma.usuario.findMany({
+                where: {
+                    [param]: { startsWith: value, mode: 'insensitive' }
+                }
+            });
         } catch (error) {
             console.log(error);
             return [];
-        } finally {
-            db.close();
         }
     };
 
-    static getUserPassword = async (usuario: string): Promise<any> => {
-        const db = await initializeDb();
+    static getUserPassword = async (usuario: string): Promise<any | null> => {
         try {
-            return db.get(`SELECT senha FROM usuarios WHERE nomeUsuario = ?`, [usuario]);
+            return await prisma.usuario.findFirst({
+                where: { nomeUsuario: usuario },
+                select: { senha: true }
+            });
         } catch (error) {
             console.log(error);
             return null;
-        } finally {
-            db.close();
         }
-    }
+    };
 }

@@ -1,24 +1,25 @@
-import initializeDb from "./databaseCon";
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
 export default class Consulta {
-    dataInicio: string | null;
-    dataFim: string | null;
-    pacienteId: number | null;
-    clinicoId: number | null;
-    userId: number | null;
+    dataInicio: string;
+    dataFim: string;
+    pacienteId: number;
+    clinicoId: number;
+    userId: number;
     descricao: string;
     tipoConsulta: string;
-    abertoEm: string | null;
+    abertoEm: string;
 
     constructor(
-        dataInicio: string | null = null,
-        dataFim: string | null = null,
-        pacienteId: number | null = null,
-        clinicoId: number | null = null,
-        userId: number | null = null,
+        dataInicio: string,
+        dataFim: string,
+        pacienteId: number,
+        clinicoId: number,
+        userId: number,
         descricao: string = "",
         tipoConsulta: string = "",
-        abertoEm: string | null = null
+        abertoEm: string
     ) {
         this.dataInicio = dataInicio;
         this.dataFim = dataFim;
@@ -31,230 +32,209 @@ export default class Consulta {
     }
 
     async save() {
-        const db = await initializeDb();
-        let todayDate = new Date();
-        let abertoEm = `${todayDate.getFullYear()}-${(todayDate.getMonth() + 1)
-            .toString()
-            .padStart(2, "0")}-${todayDate
-            .getDate()
-            .toString()
-            .padStart(2, "0")} ${todayDate
-            .getHours()
-            .toString()
-            .padStart(2, "0")}:${todayDate
-            .getMinutes()
-            .toString()
-            .padStart(2, "0")}`;
-
-        const result = await db.run(
-            `INSERT INTO consultas (dataInicio, dataFim, pacienteId, clinicoId, userId, abertoEm, descricao, tipoConsulta) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                this.dataInicio,
-                this.dataFim,
-                this.pacienteId,
-                this.clinicoId,
-                this.userId,
-                abertoEm,
-                this.descricao,
-                this.tipoConsulta,
-            ]
-        );
-        return result;
+        try {
+            const result = await prisma.consulta.create({
+                data: {
+                    dataInicio: this.dataInicio,
+                    dataFim: this.dataFim,
+                    pacienteId: this.pacienteId,
+                    clinicoId: this.clinicoId,
+                    userId: this.userId,
+                    abertoEm: this.abertoEm,
+                    descricao: this.descricao,
+                    tipoConsulta: this.tipoConsulta,
+                },
+            });
+            return result;
+        } catch (error) {
+            console.error("Error creating consulta:", error);
+            throw error;
+        }
     }
 
     static async get(params: Record<string, any>) {
-        const db = await initializeDb();
-        let query = `
-            SELECT 
-                consultas.*,
-                pacientes.id AS pacienteId,
-                pacientes.nomeCompleto AS pacienteNome,
-                pacientes.sexo AS pacienteSexo,
-                pacientes.cpf AS pacienteCpf,
-                pacientes.dataNascimento AS pacienteDataNascimento,
-                pacientes.convenio AS pacienteConvenio,
-                pacientes.telefone AS pacienteTelefone,
-                pacientes.endereco AS pacienteEndereco,
-                pacientes.email AS pacienteEmail,
-                pacientes.alergias AS pacienteAlergias,
-                pacientes.doencas AS pacienteDoencas,
-                pacientes.nomeCompletoResponsavel AS pacienteNomeCompletoResponsavel,
-                pacientes.telefoneResponsavel AS pacienteTelefoneResponsavel,
-                pacientes.cpfResponsavel AS pacienteCpfResponsavel,
-                usuarios.uid AS clinicoId,
-                usuarios.nomeCompleto AS clinicoNome,
-                usuarios.nomeUsuario AS clinicoNomeUsuario,
-                usuarios.email AS clinicoEmail,
-                usuarios.tipoUsuario AS clinicoTipoUsuario,
-                usuarios.status AS clinicoStatus
-            FROM 
-                consultas
-            JOIN 
-                pacientes ON consultas.pacienteId = pacientes.id
-            JOIN 
-                usuarios ON consultas.clinicoId = usuarios.uid
-        `;
-        const values: any[] = [];
-        if (params && Object.keys(params).length > 0) {
-            query += " WHERE ";
-            const keys = Object.keys(params);
-            for (let i = 0; i < keys.length; i++) {
-                if (keys[i] === "data") {
-                    query += `substr(consultas.dataInicio, 1, 10) = ?`; 
-                } else {
-                    query += `${keys[i]} = ?`;
+        try {
+            const filter: any = {};
+            
+            if (params) {
+                if (params.data) {
+                    filter.dataInicio = {
+                        gte: params.data + ' 00:00',
+                        lt: params.data + ' 23:59'
+                    };
                 }
-                if (
-                    keys[i] === "clinicoId" ||
-                    keys[i] === "pacienteId" ||
-                    keys[i] === "userId" ||
-                    keys[i] === "id"
-                ) {
-                    values.push(Number(params[keys[i]]));
-                } else {
-                    values.push(params[keys[i]]);
-                }
-                if (i < keys.length - 1) {
-                    query += " AND ";
-                }
+
+                if (params.clinicoId) filter.clinicoId = Number(params.clinicoId);
+                if (params.pacienteId) filter.pacienteId = Number(params.pacienteId);
+                if (params.userId) filter.userId = Number(params.userId);
+                if (params.id) filter.id = Number(params.id);
             }
-        }
-        query += " ORDER BY consultas.dataInicio DESC";
-        const result = await db.all(query, values);
-        const formmattedResult = result.map((item: any) => {
-            return {
-                id: item.id,
-                dataInicio: item.dataInicio,
-                dataFim: item.dataFim,
+
+            const consultas = await prisma.consulta.findMany({
+                where: filter,
+                include: {
+                    paciente: true,
+                    clinico: true
+                },
+                orderBy: {
+                    dataInicio: 'desc'
+                }
+            });
+
+            return consultas.map(consulta => ({
+                id: consulta.id,
+                dataInicio: consulta.dataInicio,
+                dataFim: consulta.dataFim,
                 paciente: {
-                    id: item.pacienteId,
-                    nome: item.pacienteNome,
-                    sexo: item.pacienteSexo,
-                    cpf: item.pacienteCpf,
-                    dataNascimento: item.pacienteDataNascimento,
-                    convenio: item.pacienteConvenio,
-                    telefone: item.pacienteTelefone,
-                    endereco: item.pacienteEndereco,
-                    email: item.pacienteEmail,
-                    alergias: item.pacienteAlergias,
-                    doencas: item.pacienteDoencas,
-                    nomeCompletoResponsavel:
-                        item.pacienteNomeCompletoResponsavel,
-                    telefoneResponsavel: item.pacienteTelefoneResponsavel,
-                    cpfResponsavel: item.pacienteCpfResponsavel,
+                    id: consulta.paciente.id,
+                    nome: consulta.paciente.nomeCompleto,
+                    sexo: consulta.paciente.sexo,
+                    cpf: consulta.paciente.cpf,
+                    dataNascimento: consulta.paciente.dataNascimento,
+                    convenio: consulta.paciente.convenio,
+                    telefone: consulta.paciente.telefone,
+                    endereco: consulta.paciente.endereco,
+                    email: consulta.paciente.email,
+                    alergias: consulta.paciente.alergias,
+                    doencas: consulta.paciente.doencas,
+                    nomeCompletoResponsavel: consulta.paciente.nomeCompletoResponsavel,
+                    telefoneResponsavel: consulta.paciente.telefoneResponsavel,
+                    cpfResponsavel: consulta.paciente.cpfResponsavel,
                 },
                 clinico: {
-                    id: item.clinicoId,
-                    nome: item.clinicoNome,
-                    nomeUsuario: item.clinicoNomeUsuario,
-                    email: item.clinicoEmail,
-                    tipoUsuario: item.clinicoTipoUsuario,
-                    status: item.clinicoStatus,
+                    id: consulta.clinico.uid,
+                    nome: consulta.clinico.nomeCompleto,
+                    nomeUsuario: consulta.clinico.nomeUsuario,
+                    email: consulta.clinico.email,
+                    tipoUsuario: consulta.clinico.tipoUsuario,
+                    status: consulta.clinico.status,
                 },
-                userId: item.userId,
-                abertoEm: item.abertoEm,
-                descricao: item.descricao,
-                tipoConsulta: item.tipoConsulta,
-            };
-        });
-        return formmattedResult;
+                userId: consulta.userId,
+                abertoEm: consulta.abertoEm,
+                descricao: consulta.descricao,
+                tipoConsulta: consulta.tipoConsulta,
+            }));
+        } catch (error) {
+            console.error("Error fetching consultas:", error);
+            throw error;
+        }
     }
 
     static async update(params: Record<string, any>, id: number) {
-        const db = await initializeDb();
-        let query = "UPDATE consultas SET ";
-        const values: any[] = [];
-        const keys = Object.keys(params);
-        for (let i = 0; i < keys.length; i++) {
-            query += `${keys[i]} = ?`;
-            values.push(params[keys[i]]);
-            if (i < keys.length - 1) {
-                query += ", ";
-            }
+        try {
+            const updatedConsulta = await prisma.consulta.update({
+                where: { id },
+                data: {
+                    ...params,
+                },
+            });
+            return updatedConsulta;
+        } catch (error) {
+            console.error("Error updating consulta:", error);
+            throw error;
         }
-        query += " WHERE id = ?";
-        values.push(id);
-        const result = await db.run(query, values);
-        return result;
     }
 
     static async delete(id: number) {
-        const db = await initializeDb();
-        const result = await db.run("DELETE FROM consultas WHERE id = ?", [id]);
-        return result;
+        try {
+            const deletedConsulta = await prisma.consulta.delete({
+                where: { id },
+            });
+            return deletedConsulta;
+        } catch (error) {
+            console.error("Error deleting consulta:", error);
+            throw error;
+        }
     }
 
     static async verificaHorario(params: Record<string, any>) {
-        const db = await initializeDb();
         const { clinicoId, dataInicio, dataFim } = params;
-    
-        const formattedDataInicio = new Date(dataInicio).toISOString().slice(0, 19).replace('T', ' ');
-        const formattedDataFim = new Date(dataFim).toISOString().slice(0, 19).replace('T', ' ');
-    
-        const query = `
-            SELECT *
-            FROM consultas
-            WHERE clinicoId = ?
-            AND (
-                (dataInicio BETWEEN ? AND ?) OR
-                (dataFim BETWEEN ? AND ?) OR
-                (? BETWEEN dataInicio AND dataFim) OR
-                (? BETWEEN dataInicio AND dataFim)
-            )
-            LIMIT 1;
-        `;
-    
-        const result = await db.all(query, [
-            clinicoId,
-            formattedDataInicio,
-            formattedDataFim,
-            formattedDataInicio,
-            formattedDataFim,
-            formattedDataInicio,
-            formattedDataFim,
-        ]);
 
+        const result = await prisma.consulta.findFirst({
+            where: {
+                clinicoId: clinicoId,
+                OR: [
+                    {
+                        dataInicio: {
+                            gt: dataInicio,
+                            lt: dataFim,
+                        },
+                    },
+                    {
+                        dataFim: {
+                            gt: dataInicio,
+                            lt: dataFim,
+                        },
+                    },
+                    {
+                        dataInicio: {
+                            lt: dataInicio,
+                        },
+                        dataFim: {
+                            gt: dataInicio,
+                        },
+                    },
+                    {
+                        dataInicio: {
+                            lt: dataFim,
+                        },
+                        dataFim: {
+                            gt: dataFim,
+                        },
+                    },
+                ],
+            },
+        });
+    
         return result;
     }
 
     static async verificaHorarioIntervalo(params: Record<string, any>) {
-        const db = await initializeDb(); 
-        const {
-            clinicoId,
-            dataInicio,
-            dataFim,
-            horaInicio,
-            horaFim,
-        } = params;
+        const { clinicoId, dataInicio, dataFim, horaInicio, horaFim } = params;
     
-        const query = `
-            SELECT 
-                date(dataInicio) as dia, 
-                time(dataInicio) as inicio,
-                time(dataFim) as fim
-            FROM consultas
-            WHERE clinicoId = ?
-            AND date(dataInicio) BETWEEN ? AND ?
-            AND (
-                (time(dataInicio) BETWEEN ? AND ?) OR
-                (time(dataFim) BETWEEN ? AND ?) OR
-                (time(dataInicio) < ? AND time(dataFim) > ?)
-            )
-        `;
+        const inicioPeriodo = `${dataInicio} ${horaInicio}`;
+        const fimPeriodo = `${dataFim} ${horaFim}`;
     
-        const result = await db.all(query, [
-            clinicoId,
-            dataInicio,
-            dataFim,
-            horaInicio,
-            horaFim,
-            horaInicio,
-            horaFim,
-            horaInicio,
-            horaFim,
-        ]);
+        const result = await prisma.consulta.findMany({
+            where: {
+                clinicoId: clinicoId,
+                dataInicio: {
+                    gte: `${dataInicio} 00:00`,
+                    lte: `${dataFim} 23:59`,
+                },
+                OR: [
+                    {
+                        dataInicio: {
+                            gte: inicioPeriodo,
+                            lte: fimPeriodo,
+                        },
+                    },
+                    {
+                        dataFim: {
+                            gte: inicioPeriodo,
+                            lte: fimPeriodo,
+                        },
+                    },
+                    {
+                        dataInicio: {
+                            lt: inicioPeriodo,
+                        },
+                        dataFim: {
+                            gt: fimPeriodo,
+                        },
+                    },
+                ],
+            },
+            select: {
+                dataInicio: true,
+                dataFim: true,
+            },
+        });
     
-        return result;
+        return result.map((consulta) => ({
+            dia: consulta.dataInicio.slice(0, 10),
+            inicio: consulta.dataInicio.slice(11),
+            fim: consulta.dataFim.slice(11),
+        }));
     }
 }

@@ -1,10 +1,12 @@
-import initializeDb from './databaseCon';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export default class Paciente {
     nomeCompleto: string;
     sexo: string;
     cpf: string;
-    dataNascimento: any;
+    dataNascimento: string;
     convenio: string;
     telefone: string;
     endereco: string;
@@ -15,7 +17,21 @@ export default class Paciente {
     telefoneResponsavel: string;
     cpfResponsavel: string;
 
-    constructor(nomeCompleto: string, sexo: string, cpf: string, dataNascimento: any, convenio: string, telefone: string, endereco: string, email: string, alergias: string, doencas: string, nomeCompletoResponsavel: string, telefoneResponsavel: string, cpfResponsavel: string) {
+    constructor(
+        nomeCompleto: string,
+        sexo: string,
+        cpf: string,
+        dataNascimento: string,
+        convenio: string,
+        telefone: string,
+        endereco: string,
+        email: string,
+        alergias: string,
+        doencas: string,
+        nomeCompletoResponsavel: string,
+        telefoneResponsavel: string,
+        cpfResponsavel: string
+    ) {
         this.nomeCompleto = nomeCompleto;
         this.sexo = sexo;
         this.cpf = cpf;
@@ -32,100 +48,132 @@ export default class Paciente {
     }
 
     static async addPaciente(paciente: Paciente): Promise<boolean> {
-        const db = await initializeDb();
         try {
-            console.log('Database initialized');
-            await db.run("INSERT INTO pacientes (nomeCompleto, sexo, cpf, dataNascimento, convenio, telefone, endereco, email, alergias, doencas, nomeCompletoResponsavel, telefoneResponsavel, cpfResponsavel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-                paciente.nomeCompleto, paciente.sexo, paciente.cpf, paciente.dataNascimento,
-                paciente.convenio, paciente.telefone, paciente.endereco, paciente.email,
-                paciente.alergias, paciente.doencas, paciente.nomeCompletoResponsavel,
-                paciente.telefoneResponsavel, paciente.cpfResponsavel
-            ]);
+            await prisma.paciente.create({
+                data: {
+                    nomeCompleto: paciente.nomeCompleto,
+                    sexo: paciente.sexo,
+                    cpf: paciente.cpf,
+                    dataNascimento: paciente.dataNascimento,
+                    convenio: paciente.convenio,
+                    telefone: paciente.telefone,
+                    endereco: paciente.endereco,
+                    email: paciente.email,
+                    alergias: paciente.alergias,
+                    doencas: paciente.doencas,
+                    nomeCompletoResponsavel: paciente.nomeCompletoResponsavel,
+                    telefoneResponsavel: paciente.telefoneResponsavel,
+                    cpfResponsavel: paciente.cpfResponsavel,
+                },
+            });
             return true;
         } catch (error) {
-            console.error('Error while inserting data into the database:', error);
+            console.error('Error while adding paciente:', error);
             return false;
-        } finally {
-            db.close();
         }
     }
 
-    static getAllPacientes = async (): Promise<any[]> => {
-        const db = await initializeDb();
+    static async getAllPacientes(): Promise<any[]> {
         try {
-            return db.all("SELECT * FROM pacientes ORDER BY nomeCompleto ASC");
+            return await prisma.paciente.findMany({
+                orderBy: { nomeCompleto: 'asc' },
+            });
         } catch (error) {
             console.log(error);
             return [];
-        } finally {
-            db.close();
         }
-    };
+    }
 
-    static getPacienteBy = (param: string, value: string) => {
-        return new Promise( async (resolve, reject) => {
-            const db = await initializeDb();
-            try {
-                const allowedParams = ['nomeCompleto', 'sexo', 'cpf', 'dataNascimento', 'convenio', 'telefone', 'endereco', 'email', 'alergias', 'doencas', 'nomeCompletoResponsavel', 'telefoneResponsavel', 'cpfResponsavel'];
-                if (!allowedParams.includes(param)) {
-                    throw new Error("Parâmetro de busca inválido.");
-                }
-                db.get(`SELECT * FROM pacientes WHERE ${param} = ?`, [value], (err: any, result: unknown) => {
-                    if (err) {
-                        console.log(err);
-                        reject(err);
-                    } else {
-                        console.log(result);
-                        resolve(result);
-                    }
-                });
-            } catch (error) {
-                console.log(error);
-                reject(error);
-            } finally {
-                db.close();
-            }
-        });
-    };
+    static async getPacienteBy(param: string, value: string): Promise<any | null> {
+        const allowedParams = [
+            'nomeCompleto',
+            'sexo',
+            'cpf',
+            'dataNascimento',
+            'convenio',
+            'telefone',
+            'endereco',
+            'email',
+            'alergias',
+            'doencas',
+            'nomeCompletoResponsavel',
+            'telefoneResponsavel',
+            'cpfResponsavel',
+        ];
+        if (!allowedParams.includes(param)) {
+            throw new Error('Parâmetro de busca inválido.');
+        }
 
-    static getPacienteByLike = async (param: string,value: string) => {
-
-        const db = await initializeDb();
-        return new Promise( async (resolve, reject) => {
-            value = "%" + value + "%";
-            db.all(`SELECT * FROM pacientes WHERE ${param} LIKE ?`, [value], (err: any, result: unknown) => {
-                if (err) {
-                    console.log(err);
-                    reject(err);
-                } else {
-                    console.log(result);
-                    resolve(result);
-                }
+        try {
+            return await prisma.paciente.findFirst({
+                where: {
+                    [param]: value,
+                },
             });
-        });
-    };
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    }
 
-    static updatePaciente = async (paciente: Paciente) => {
-        return new Promise(async (resolve, reject) => {
-            const db = await initializeDb();
-            try {
-                db.run("UPDATE pacientes SET nomeCompleto = ?, sexo = ?, cpf = ?, dataNascimento = ?, convenio = ?, telefone = ?, endereco = ?, email = ?, alergias = ?, doencas = ?, nomeCompletoResponsavel = ?, telefoneResponsavel = ?, cpfResponsavel = ? WHERE cpf = ?", 
-                [paciente.nomeCompleto, paciente.sexo, paciente.cpf, paciente.dataNascimento, paciente.convenio, paciente.telefone, paciente.endereco, paciente.email, paciente.alergias, paciente.doencas, paciente.nomeCompletoResponsavel, paciente.telefoneResponsavel, paciente.cpfResponsavel, paciente.cpf],
-                function (err: any) {
-                    if (err) {
-                        console.log(err);
-                        reject(err);
-                    } else {
-                        resolve(true);
-                    }
-                });
-            } catch (error) {
-                console.log(error);
-                reject(error);
-            } finally {
-                db.close();
-            }
-        });
-    };
+    static async getPacienteByLike(param: string, value: string): Promise<any[]> {
+        const allowedParams = [
+            'nomeCompleto',
+            'sexo',
+            'cpf',
+            'dataNascimento',
+            'convenio',
+            'telefone',
+            'endereco',
+            'email',
+            'alergias',
+            'doencas',
+            'nomeCompletoResponsavel',
+            'telefoneResponsavel',
+            'cpfResponsavel',
+        ];
+        if (!allowedParams.includes(param)) {
+            throw new Error('Parâmetro de busca inválido.');
+        }
+
+        try {
+            return await prisma.paciente.findMany({
+                where: {
+                    [param]: {
+                        contains: value,
+                        mode: 'insensitive'
+                    },
+                },
+            });
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    }
+
+    static async updatePaciente(paciente: Paciente): Promise<boolean> {
+        try {
+            await prisma.paciente.update({
+                where: { cpf: paciente.cpf },
+                data: {
+                    nomeCompleto: paciente.nomeCompleto,
+                    sexo: paciente.sexo,
+                    dataNascimento: paciente.dataNascimento,
+                    convenio: paciente.convenio,
+                    telefone: paciente.telefone,
+                    endereco: paciente.endereco,
+                    email: paciente.email,
+                    alergias: paciente.alergias,
+                    doencas: paciente.doencas,
+                    nomeCompletoResponsavel: paciente.nomeCompletoResponsavel,
+                    telefoneResponsavel: paciente.telefoneResponsavel,
+                    cpfResponsavel: paciente.cpfResponsavel,
+                },
+            });
+            return true;
+        } catch (error) {
+            console.error('Error while updating paciente:', error);
+            return false;
+        }
+    }
 }
