@@ -11,6 +11,7 @@ ConsultaRoute.get('/:id', verifyTokenMiddleware, ConsultaController.getConsultaB
 ConsultaRoute.put('/:id', verifyTokenMiddleware, ConsultaController.updateConsulta);
 ConsultaRoute.delete('/:id', verifyTokenMiddleware, ConsultaController.deleteConsulta);
 ConsultaRoute.post('/verificar', verifyTokenMiddleware, ConsultaController.verificaHorario);
-ConsultaRoute.post('/intervaloLivre', verifyTokenMiddleware, ConsultaController.verificaHorarioIntervalo);    
+ConsultaRoute.post('/intervaloLivre', verifyTokenMiddleware, ConsultaController.verificaHorarioIntervalo);
+// ConsultaRoute.post('/arquivos/:id', verifyTokenMiddleware, ConsultaController.arquivosConsulta);
 
 export default ConsultaRoute;

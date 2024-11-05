@@ -1,207 +1,145 @@
-import initializeDb from "./databaseCon";
-import Usuario from "./usuario";
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
-export default class Pagamento {
-    id: number | null;
-    consultaId: number | null;
-    userId: number | null;
-    valor: number;
-    status: string | null;
-    abertoEm: string | null;
-    pacienteId: number | null;
+export default class Pagamento{
+    dataPagamento: string;
+    valorPago: number;
+    usuarioId: number;
+    tipoPagamento: string;
+    cobrancaId?: number;
 
     constructor(
-        id: number | null = null,
-        consultaId: number | null = null,
-        userId: number,
-        valor: number,
-        status: string | null = null,
-        abertoEm: string | null = null,
-        pacienteId: number,
-
+        dataPagamento: string, 
+        valorPago: number, 
+        usuarioId: number, 
+        tipoPagamento: string,
+        cobrancaId?: number
     ) {
-        this.id = id;
-        this.consultaId = consultaId;
-        this.userId = userId;
-        this.valor = valor;
-        this.status = status;
-        this.abertoEm = abertoEm;
-        this.pacienteId = pacienteId;
+        this.dataPagamento = dataPagamento;
+        this.valorPago = valorPago;
+        this.usuarioId = usuarioId;
+        this.tipoPagamento = tipoPagamento;
+        this.cobrancaId = cobrancaId;
     }
 
     async save() {
-        const db = await initializeDb();
-        let todayDate = new Date();
-        let abertoEm = `${todayDate.getFullYear()}-${(todayDate.getMonth() + 1)
-            .toString()
-            .padStart(2, "0")}-${todayDate
-            .getDate()
-            .toString()
-            .padStart(2, "0")} ${todayDate
-            .getHours()
-            .toString()
-            .padStart(2, "0")}`;
-
-        const result = await db.run(
-            `INSERT INTO pagamentos (consultaId, userId, valor, status, abertoEm, pacienteId) 
-            VALUES (?, ?, ?, ?, ?, ?)`,
-            [
-                this.consultaId,
-                this.userId,
-                this.valor,
-                this.status,
-                abertoEm,
-                this.pacienteId
-            ]
-        );
-
-        return result;
+        try {
+            const result = await prisma.pagamento.create({
+                data: {
+                    dataPagamento: this.dataPagamento, 
+                    valorPago: this.valorPago, 
+                    usuarioId: this.usuarioId, 
+                    tipoPagamento: this.tipoPagamento,
+                    cobrancaId: this.cobrancaId !== undefined ? this.cobrancaId : null
+                },
+            });
+            return result;
+        } catch (error) {
+            console.error("Error creating consulta:", error);
+            throw error;
+        }
     }
 
-
-    static async get(params: Record<string, any>) {
-        const db = await initializeDb();
-    
-        let pagamentosQuery = `
-            SELECT 
-                pagamentos.*,
-                pacientes.id AS pacienteId,
-                pacientes.nomeCompleto AS pacienteNome,
-                pacientes.sexo AS pacienteSexo,
-                pacientes.cpf AS pacienteCpf,
-                pacientes.dataNascimento AS pacienteDataNascimento,
-                pacientes.convenio AS pacienteConvenio,
-                pacientes.telefone AS pacienteTelefone,
-                pacientes.endereco AS pacienteEndereco,
-                pacientes.email AS pacienteEmail,
-                pacientes.alergias AS pacienteAlergias,
-                pacientes.doencas AS pacienteDoencas,
-                pacientes.nomeCompletoResponsavel AS pacienteNomeCompletoResponsavel,
-                pacientes.telefoneResponsavel AS pacienteTelefoneResponsavel,
-                pacientes.cpfResponsavel AS pacienteCpfResponsavel,
-                usuarios.uid AS clinicoId,
-                usuarios.nomeCompleto AS clinicoNome,
-                usuarios.nomeUsuario AS clinicoNomeUsuario,
-                usuarios.email AS clinicoEmail,
-                usuarios.tipoUsuario AS clinicoTipoUsuario,
-                usuarios.status AS clinicoStatus
-            FROM pagamentos
-            JOIN pacientes ON pagamentos.pacienteId = pacientes.id
-            JOIN usuarios ON pagamentos.userId = usuarios.uid
-        `;
-    
-        const pagamentosValues: any[] = [];
-        if (params && Object.keys(params).length > 0) {
-            pagamentosQuery += " WHERE ";
-            const keys = Object.keys(params);
-            for (let i = 0; i < keys.length; i++) {
-                pagamentosQuery += `${keys[i]} = ?`;
-                pagamentosValues.push(params[keys[i]]);
-                if (i < keys.length - 1) {
-                    pagamentosQuery += " AND ";
-                }
-            }
-        }
-    
-        pagamentosQuery += " ORDER BY pagamentos.id DESC";
-        const pagamentosResult = await db.all(pagamentosQuery, pagamentosValues);
-    
-        const pagamentosArray: any[] = [];
-        for (const item of pagamentosResult) {
-            pagamentosArray.push({
-                id: item.id,
-                valor: item.valor,
-                formaPagamento: item.formaPagamento,
-                dataPagamento: item.dataPagamento,
-                consultaId: item.consultaId,
-                userId: item.userId,
-                abertoEm: item.abertoEm,
-                paciente: {
-                    id: item.pacienteId,
-                    nome: item.pacienteNome,
-                    sexo: item.pacienteSexo,
-                    cpf: item.pacienteCpf,
-                    dataNascimento: item.pacienteDataNascimento,
-                    convenio: item.pacienteConvenio,
-                    telefone: item.pacienteTelefone,
-                    endereco: item.pacienteEndereco,
-                    email: item.pacienteEmail,
-                    alergias: item.pacienteAlergias,
-                    doencas: item.pacienteDoencas,
-                    nomeResponsavel: item.pacienteNomeCompletoResponsavel,
-                    telefoneResponsavel: item.pacienteTelefoneResponsavel,
-                    cpfResponsavel: item.pacienteCpfResponsavel
-                },
-                usuario: {
-                    id: item.clinicoId,
-                    nome: item.clinicoNome,
-                    nomeUsuario: item.clinicoNomeUsuario,
-                    email: item.clinicoEmail,
-                    tipoUsuario: item.clinicoTipoUsuario,
-                    status: item.clinicoStatus
-                },
-                parcelas: []
-            });
-            
-        }
-
-        const pagamentoIds = pagamentosArray.map((pagamento: any) => pagamento.id);
-    
-        if (pagamentoIds.length > 0) {
-            const parcelasQuery = `
-                SELECT 
-                    parcelas.*, 
-                    usuarios.nomeCompleto AS usuarioNomeCompleto,
-                    usuarios.nomeUsuario AS usuarioNomeUsuario
-                FROM parcelas
-                JOIN usuarios ON parcelas.userId = usuarios.uid
-                WHERE pagamentoId IN (${pagamentoIds.join(',')})
-            `;
-    
-            const parcelasResult = await db.all(parcelasQuery);
-            parcelasResult.forEach((parcela: any) => {
-                const pagamento = pagamentosArray.find((pagamento: any) => pagamento.id === parcela.pagamentoId);
-                pagamento.parcelas.push({
-                    id: parcela.id,
-                    numero: parcela.numero,
-                    valor: parcela.valor,
-                    dataVencimento: parcela.dataVencimento,
-                    status: parcela.status,
-                    formaPagamento: parcela.formaPagamento,
-                    usuario: {
-                        id: parcela.userId,
-                        nomeCompleto: parcela.usuarioNomeCompleto,
-                        nomeUsuario: parcela.usuarioNomeUsuario
-                    },
-                    dataPagamento: parcela.dataPagamento,
-                    abertoEm: parcela.abertoEm,
-                });
-            });
-        }
-        return Array.from(pagamentosArray.values());
-    }    
-
     static async update(params: Record<string, any>, id: number) {
-        const db = await initializeDb();
-        let query = `UPDATE pagamentos SET `;
-        const keys = Object.keys(params);
-        const values: any[] = [];
-        for (let i = 0; i < keys.length; i++) {
-            query += `${keys[i]} = ?`;
-            values.push(params[keys[i]]);
-            if (i < keys.length - 1) {
-                query += ", ";
-            }
+        try {
+            const updatedCobranca = await prisma.pagamento.update({
+                where: { id },
+                data: {
+                    ...params,
+                },
+            });
+            return updatedCobranca;
+        } catch (error) {
+            console.error("Error updating consulta:", error);
+            throw error;
         }
-        query += ` WHERE id = ?`;
-        values.push(id);
-        const result = await db.run(query, values);
-        return result;
     }
 
     static async delete(id: number) {
-        const db = await initializeDb();
-        const result = await db.run(`DELETE FROM pagamentos WHERE id = ?`, [id]);
-        return result;
+        try {
+            const result = await prisma.pagamento.delete({
+                where: { id },
+            });
+            return result;
+        } catch (error) {
+            console.error("Error deleting consulta:", error);
+            throw error;
+        }
+    }
+
+    static getCobrancaBy = async (param: string, value: string): Promise<any[]> => {
+        const allowedParams = ['cobrancaId', 'vencimento', 'status'];
+        if (!allowedParams.includes(param)) {
+            throw new Error("Parâmetro de busca inválido.");
+        }
+
+        try {
+            return await prisma.pagamento.findMany({
+                where: {
+                    [param]: value
+                }
+            });
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    }
+
+    static async get(params: Record<string, any>) {
+        try {
+            const filter: any = {};
+            
+            if (params) {
+                if (params.id) filter.id = Number(params.id);
+                if (params.cobrancaId) filter.cobrancaId = Number(params.cobrancaId);
+                if (params.valorPago) filter.valorPago = Number(params.valorPago);
+                if (params.dataPagamento) filter.dataPagamento = params.dataPagamento;
+            }
+
+            const pagamentos = await prisma.pagamento.findMany({
+                where: filter,
+                include: {
+                    cobranca: true,
+                    usuario: true
+                },
+                orderBy: {
+                    dataPagamento: 'desc'
+                }
+            });
+
+            return pagamentos.map(pagamento => {
+                const pagamentoObj: any = {
+                    id: pagamento.id,
+                    dataPagamento: pagamento.dataPagamento,
+                    valorPago: pagamento.valorPago,
+                    usuario: {
+                        id: pagamento.usuario.uid,
+                        nome: pagamento.usuario.nomeCompleto,
+                        nomeUsuario: pagamento.usuario.nomeUsuario,
+                        email: pagamento.usuario.email,
+                        tipoUsuario: pagamento.usuario.tipoUsuario,
+                        status: pagamento.usuario.status,
+                    },
+                    tipoPagamento: pagamento.tipoPagamento,
+                    cobrancaId: pagamento.cobrancaId,
+                };
+
+                if (pagamento.cobranca) {
+                    pagamentoObj.cobranca = {
+                        id: pagamento.cobranca.id,
+                        pacienteId: pagamento.cobranca.pacienteId,
+                        tipo: pagamento.cobranca.tipo,
+                        descricao: pagamento.cobranca.descricao,
+                        valorTotal: pagamento.cobranca.valorTotal,
+                        criadoEm: pagamento.cobranca.criadoEm,
+                    };
+                }
+
+                return pagamentoObj;
+            });
+        } catch (error) {
+            console.error("Error cobrancas:", error);
+            throw error;
+        }
     }
 }

@@ -1,16 +1,17 @@
 import {Request, Response} from "express";
-import Pagamento from "../Model/pagamento";
+import Parcela from "../Model/parcela";
 
-export const addPagamento = async (req: Request, res: Response) => {
+export const addParcela = async (req: Request, res: Response) => {
     try {
-        let pagamento = new Pagamento( 
-            req.body.dataPagamento,
-            req.body.valorPago,
-            req.body.usuarioId,
-            req.body.tipoPagamento,
-            req.body.cobrancaId
+        let parcela = new Parcela( 
+            req.body.cobrancaId,
+            req.body.numeroParcela,
+            req.body.valor,
+            req.body.vencimento,
+            req.body.status,
+            req.body.pagamentoId
         );
-        let result = await pagamento.save();
+        let result = await parcela.save();
         if(result){
             res.json({
                 message: "Cobrança criada com sucesso!",
@@ -31,24 +32,24 @@ export const addPagamento = async (req: Request, res: Response) => {
     }
 }
 
-export const getAllPagamentos = async (req: Request, res: Response) => {
+export const getAllParcelas = async (req: Request, res: Response) => {
     try {   
-        const pagamentos = await Pagamento.get({});
-        res.json(pagamentos);
+        const parcelas = await Parcela.get({});
+        res.json(parcelas);
     } catch (error) {
         res.json({
-            message: "Erro ao buscar pagamentos!",
+            message: "Erro ao buscar parcelas!",
             code: 500,
         });
     }
 }
 
-export const getPagamentoById = async (req: Request, res: Response) => {
+export const getParcelaById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const pagamento = await Pagamento.get({ id: Number(id) });
-        if (pagamento.length > 0) {
-            res.json(pagamento[0]);
+        const parcela = await Parcela.get({ id: Number(id) });
+        if (parcela.length > 0) {
+            res.json(parcela[0]);
         } else {
             res.json({
                 message: "Cobrança não encontrada!",
@@ -64,12 +65,12 @@ export const getPagamentoById = async (req: Request, res: Response) => {
     }
 }
 
-export const getPagamentoByParam = async (req: Request, res: Response) => {
+export const getParcelaByParam = async (req: Request, res: Response) => {
     try {
         const params = req.query;
-        const pagamentos = await Pagamento.get(params);
-        if (pagamentos.length > 0) {
-            res.json(pagamentos);
+        const parcelas = await Parcela.get(params);
+        if (parcelas.length > 0) {
+            res.json(parcelas);
         } else {
             res.json({
                 message: "Nenhuma cobrança encontrada com os parâmetros fornecidos!",
@@ -79,16 +80,16 @@ export const getPagamentoByParam = async (req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         res.json({
-            message: "Erro ao buscar pagamento!",
+            message: "Erro ao buscar parcela!",
             code: 500,
         });
     }
 }
 
-export const deletePagamento = async (req: Request, res: Response) => {
+export const deleteParcela = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const result = await Pagamento.delete(Number(id));
+        const result = await Parcela.delete(Number(id));
         if(result){
             res.json({
                 message: "Cobrança deletada com sucesso!",
@@ -109,10 +110,10 @@ export const deletePagamento = async (req: Request, res: Response) => {
     }
 }
 
-export const updatePagamento = async (req: Request, res: Response) => {
+export const updateParcela = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const result = await Pagamento.update(req.body, Number(id));
+        const result = await Parcela.update(req.body, Number(id));
         if(result){
             res.json({
                 message: "Cobrança atualizada com sucesso!",

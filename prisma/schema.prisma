@@ -30,6 +30,7 @@ model Paciente {
   cpfResponsavel      String?
 
   consultas           Consulta[]
+  cobrancas           Cobranca[]
 }
 
 model Usuario {
@@ -43,6 +44,8 @@ model Usuario {
 
   consultasComoClinico Consulta[] @relation(name: "ClinicoRelation")
   consultasComoUser Consulta[] @relation(name: "UserRelation")
+  cobrancas Cobranca[]
+  pagamentos Pagamento []
 }
 
 model Consulta {
@@ -58,4 +61,57 @@ model Consulta {
   tipoConsulta       String   @default("0")
   abertoEm           String
   descricao          String?
+
+  consultaArquivos ConsultaArquivo[]
 }
+
+model ConsultaArquivo {
+  id           Int      @id @default(autoincrement())
+  consultaId   Int
+  consulta     Consulta @relation(fields: [consultaId], references: [id])
+  caminho      String
+  nome         String
+  criadoEm     DateTime @default(now())
+}
+
+model Cobranca {
+  id                   Int       @id @default(autoincrement())
+  pacienteId           Int
+  paciente             Paciente  @relation(fields: [pacienteId], references: [id])
+  usuarioId            Int
+  usuario              Usuario   @relation(fields: [usuarioId], references: [uid])
+  tipo                 String
+  descricao            String?
+  valorTotal           Float
+  criadoEm             String
+  parcelas             Parcela[]
+  pagamentos           Pagamento[]
+}
+
+model Parcela {
+  id                Int       @id @default(autoincrement())
+  cobrancaId        Int
+  cobranca          Cobranca  @relation(fields: [cobrancaId], references: [id])
+  numeroParcela     Int
+  valor             Float
+  vencimento        String
+  status            String
+  pagamentoId       Int?
+  pagamento         Pagamento? @relation(fields: [pagamentoId], references: [id])
+}
+
+model Pagamento {
+  id                Int       @id @default(autoincrement())
+  cobrancaId        Int?
+  cobranca          Cobranca? @relation(fields: [cobrancaId], references: [id])
+  dataPagamento     String
+  valorPago         Float
+  usuarioId         Int
+  usuario           Usuario   @relation(fields: [usuarioId], references: [uid])
+  tipoPagamento     String
+
+  parcela           Parcela[]
+}
+
+//TODO: MODELS
+// permissoes

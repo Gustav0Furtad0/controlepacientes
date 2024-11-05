@@ -1,7 +1,81 @@
 import { Request, Response } from "express";
 import Consulta from "../Model/consulta";
+import ConsultaArquivo from "../Model/consultaArquivo";
 import { getSessionInfo } from "./session";
 import { DateTime } from 'luxon';
+import multer from "multer";
+
+type CustomFile = {
+    fieldname: string;
+    originalname: string;
+    encoding: string;
+    mimetype: string;
+    destination: string;
+    filename: string;
+    path: string;
+    size: number;
+};
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);
+    },
+});
+
+const upload = multer({ storage });
+
+export const uploadArquivos = async (req: Request, res: Response) => {
+    const consultaId = req.params.consultaId;
+
+    const files = req.files as Express.Multer.File[] | undefined;
+
+    if (!files) {
+        return res.status(400).json({
+            message: "Nenhum arquivo enviado!",
+            code: 400,
+        });
+    }
+
+    const uploadedFiles: CustomFile[] = Array.isArray(files)
+        ? (files as CustomFile[])
+        : Object.values(files).flat() as CustomFile[];
+
+    if (uploadedFiles.length === 0) {
+        return res.status(400).json({
+            message: "Nenhum arquivo enviado!",
+            code: 400,
+        });
+    }
+
+    try {
+        for (const file of uploadedFiles) {
+            await ConsultaArquivo.create({
+                consultaId: Number(consultaId),
+                caminho: file.path,
+                nome: file.filename,
+            });
+        }
+
+        return res.json({
+            message: "Arquivos enviados com sucesso!",
+            code: 200,
+            files: uploadedFiles.map(file => ({
+                originalName: file.originalname,
+                fileName: file.filename,
+                path: file.path,
+            })),
+        });
+    } catch (error) {
+        console.error("Error uploading files:", error);
+        return res.status(500).json({
+            message: "Erro ao enviar arquivos!",
+            code: 500,
+        });
+    }
+};
 
 const createDatetimeStrings = (dataConsulta: string, horaInicio: string, horaFinal: string): { dataInicio: string, dataFim: string } => {
     return {

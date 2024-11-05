@@ -74,7 +74,8 @@ export default class Consulta {
                 where: filter,
                 include: {
                     paciente: true,
-                    clinico: true
+                    clinico: true,
+                    consultaArquivos: true
                 },
                 orderBy: {
                     dataInicio: 'desc'
@@ -113,6 +114,12 @@ export default class Consulta {
                 abertoEm: consulta.abertoEm,
                 descricao: consulta.descricao,
                 tipoConsulta: consulta.tipoConsulta,
+                arquivos: consulta.consultaArquivos.map(arquivo => ({
+                    id: arquivo.id,
+                    caminho: arquivo.caminho,
+                    nome: arquivo.nome,
+                    criadoEm: arquivo.criadoEm,
+                })),
             }));
         } catch (error) {
             console.error("Error fetching consultas:", error);

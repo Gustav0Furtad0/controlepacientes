@@ -38,7 +38,6 @@ const verifyTokenMiddleware = async (req: Request, res: Response, next: NextFunc
             code: 500,
         });
     }
-    console.log(getTokenExpiration(token));
     const newToken = await updateTokenExpiration(token, '15m');
     res.setHeader('Authorization', `Bearer ${newToken}`);
     next();
